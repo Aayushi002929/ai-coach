@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🚀 AI Career Coach Platform
 
-## Getting Started
+An intelligent full-stack web application that helps users with career guidance using AI-powered insights. It provides personalized suggestions, resume improvements, and career recommendations based on user input.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 📌 Project Overview
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The AI Career Coach Platform is designed to assist users in making better career decisions by leveraging AI. Users can input their details, skills, and goals, and the system generates meaningful suggestions to guide their career path.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### Features:
+- 🧠 AI-based career guidance
+- 📄 Resume analysis & improvement suggestions
+- 🎯 Personalized recommendations
+- 🔐 Secure authentication system
+- ⚡ Fast and responsive UI
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🛠️ Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+### 💻 Frontend
+- Next.js
+- Tailwind CSS
+- Shadcn UI
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 🧠 Backend & Database
+- Neon DB (PostgreSQL)
+- Prisma ORM
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 🔐 Authentication
+- Clerk
 
-## Deploy on Vercel
+### 🤖 AI Integration
+- Google Gemini API
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### ⚙️ Background Jobs
+- Inngest
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## ⚙️ Environment Variables
+
+DATABASE_URL=
+
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/onboarding
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/onboarding
+
+GEMINI_API_KEY=
+---
+
+## ⚡ How It Works
+
+1. User signs up or logs in using Clerk  
+2. User enters career-related data  
+3. Backend processes data and sends request to Gemini API  
+4. AI generates personalized career suggestions  
+5. Results are displayed on the dashboard  
+
+---
+
+## 🎯 Key Highlights
+
+- Full-stack project using Next.js  
+- Secure authentication with Clerk  
+- AI-powered features using Gemini API  
+- Scalable database with Prisma + Neon DB  
+- Clean UI with Tailwind and Shadcn  
+- Background workflows using Inngest  
+
+---
+
+## 📌 Conclusion
+
+This project demonstrates how AI can be integrated into a full-stack application to build a smart and scalable career guidance platform.
+
+
+Create a `.env` file in the root directory and add:
+
