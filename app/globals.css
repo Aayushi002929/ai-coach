@@ -180,3 +180,12 @@
     rgba(255,255,255,0.1) 100%
   );
 }
+.sr-only:has(#resume-pdf) {
+  position: fixed !important;
+  left: -9999px !important;
+  width: 794px !important;
+  height: auto !important;
+  overflow: visible !important;
+  clip: unset !important;
+  white-space: normal !important;
+}

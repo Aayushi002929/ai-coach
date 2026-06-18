@@ -114,30 +114,89 @@ export default function ResumeBuilder({ initialContent }) {
 
 const generatePDF = async () => {
   setIsGenerating(true);
+  setActiveTab("preview");
+  setResumeMode("preview");
+
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   try {
     if (typeof window === "undefined") return;
 
     const html2pdf = (await import("html2pdf.js")).default;
 
-    const element = document.getElementById("resume-pdf");
+    // --- Patch all stylesheets to remove lab()/oklch() BEFORE html2canvas runs ---
+    const styleOverride = document.createElement("style");
+    styleOverride.id = "pdf-color-override";
+    styleOverride.innerHTML = `
+      * {
+        color: #000000 !important;
+        background-color: transparent !important;
+        border-color: #cccccc !important;
+        --tw-prose-body: #000000 !important;
+        --tw-prose-headings: #000000 !important;
+        --tw-prose-links: #000000 !important;
+        --tw-prose-bold: #000000 !important;
+        --tw-prose-counters: #000000 !important;
+        --tw-prose-bullets: #000000 !important;
+        --tw-prose-hr: #cccccc !important;
+        --tw-prose-quotes: #000000 !important;
+        --tw-prose-code: #000000 !important;
+        --tw-prose-pre-code: #000000 !important;
+        --tw-prose-pre-bg: #f5f5f5 !important;
+        --tw-prose-th-borders: #cccccc !important;
+        --tw-prose-td-borders: #cccccc !important;
+      }
+      #resume-pdf, #resume-pdf * {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+      }
+    `;
+    document.head.appendChild(styleOverride);
+
+    // Small extra wait for styles to apply
+    await new Promise((resolve) => setTimeout(resolve, 100));
+const element = document.getElementById("resume-pdf");
+
+    // CHANGE THIS
+if (!element) {
+  console.error("Preview element not found");
+  document.getElementById("pdf-color-override")?.remove();
+  return;
+}
 
     const opt = {
       margin: [15, 15],
       filename: "resume.pdf",
       image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        ignoreElements: (el) => {
+          // Skip any element that is not the preview pane or its children
+          return (
+            el.classList.contains("w-md-editor-toolbar") ||
+            el.classList.contains("w-md-editor-input")
+          );
+        },
+      },
+      jsPDF: {
+        unit: "mm",
+        format: "a4",
+        orientation: "portrait",
+      },
     };
 
     await html2pdf().set(opt).from(element).save();
   } catch (error) {
     console.error("PDF generation error:", error);
   } finally {
+    // Always remove the override styles after capture
+    document.getElementById("pdf-color-override")?.remove();
     setIsGenerating(false);
   }
 };
-
   const onSubmit = async (data) => {
     try {
       const formattedContent = previewContent
@@ -407,17 +466,33 @@ const generatePDF = async () => {
               preview={resumeMode}
             />
           </div>
-          <div className="hidden">
-            <div id="resume-pdf">
-              <MDEditor.Markdown
-                source={previewContent}
-                style={{
-                  background: "white",
-                  color: "black",
-                }}
-              />
-            </div>
-          </div>
+    <div
+  style={{
+    position: "fixed",
+    left: "-9999px",
+    top: 0,
+    width: "794px",
+    backgroundColor: "#ffffff",
+    color: "#000000",
+    fontFamily: "Arial, sans-serif",
+    fontSize: "13px",
+    lineHeight: "1.6",
+    padding: "40px",
+    boxSizing: "border-box",
+    zIndex: -1,
+  }}
+>
+  <div id="resume-pdf">
+    <MDEditor.Markdown
+      source={previewContent}
+      style={{
+        background: "#ffffff",
+        color: "#000000",
+        fontFamily: "Arial, sans-serif",
+      }}
+    />
+  </div>
+</div>
         </TabsContent>
       </Tabs>
     </div>
