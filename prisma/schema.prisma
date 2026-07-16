@@ -27,7 +27,7 @@ model User {
 
   assessments    Assessment[]
   resume         Resume?
-  coverLetter    CoverLetter[]
+  
 }
 
 model Assessment{
@@ -53,18 +53,7 @@ model Resume{
    updateAt        DateTime   @updatedAt
 }
 
-model CoverLetter{
-  id               String      @id @default(cuid())
-  userId           String 
-  user             User        @relation(fields: [userId], references: [id])
-  content         String     @db.Text
-  jobDescription  String?
-  companyName     String
-  jobTitle        String
-  createdAt       DateTime   @default(now())
-  updateAt        DateTime   @updatedAt
-   @@index([userId])
-}
+
 
 model IndustryInsight{
     id               String      @id @default(cuid())
