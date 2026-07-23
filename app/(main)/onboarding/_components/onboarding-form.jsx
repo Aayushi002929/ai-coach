@@ -165,7 +165,7 @@ const OnboardingForm = ({industries}) => {
 
 {errors.skills && (
     <p className="text-sm text-red-500">
-        {errors.experience.message}
+        {errors.skills.message}
     </p>
 )}
 </div>
@@ -181,7 +181,7 @@ const OnboardingForm = ({industries}) => {
 
 {errors.bio && (
     <p className="text-sm text-red-500">
-        {errors.experience.message}
+        {errors.bio.message}
     </p>
 )}
 </div>
