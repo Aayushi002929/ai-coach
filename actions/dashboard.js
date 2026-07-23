@@ -3,13 +3,39 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
+// Normalize any AI-returned value to a value your Prisma enums actually accept
+function normalizeDemandLevel(value) {
+  const map = {
+    HIGH: "HIGH",
+    VERY_HIGH: "HIGH",
+    MEDIUM: "MEDIUM",
+    MODERATE: "MEDIUM",
+    LOW: "LOW",
+    VERY_LOW: "LOW",
+  };
+  return map[value?.toUpperCase()] || "HIGH";
+}
+
+function normalizeMarketOutlook(value) {
+  const map = {
+    POSITIVE: "POSITIVE",
+    VERY_POSITIVE: "POSITIVE",
+    NEUTRAL: "NEUTRAL",
+    NEGATIVE: "NEGATIVE",
+    VERY_NEGATIVE: "NEGATIVE",
+  };
+  return map[value?.toUpperCase()] || "POSITIVE";
+}
+
 // Generate AI insights with safe fallback
 export const generateAIInsights = async (industry) => {
-// around line ~6
-const prompt = `
+  const prompt = `
 Return ONLY valid JSON. No explanation. No markdown.
 
 Industry: ${industry}
+
+IMPORTANT: "demandLevel" must be EXACTLY one of these three strings: "HIGH", "MEDIUM", "LOW" (nothing else, no variations).
+IMPORTANT: "marketOutlook" must be EXACTLY one of these three strings: "POSITIVE", "NEUTRAL", "NEGATIVE" (nothing else, no variations).
 
 {
   "salaryRanges": [
@@ -25,7 +51,7 @@ Industry: ${industry}
 `;
 
   const res = await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -39,58 +65,49 @@ Industry: ${industry}
 
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
   console.log("AI RAW:", text);
-const cleanedText = text
-  .replace(/```json/g, "")
-  .replace(/```/g, "")
-  .trim();
+  const cleanedText = text
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
 
- let insights = {};
-try {
-  insights = JSON.parse(cleanedText);
-} catch (err) {
-  console.log("JSON ERROR:", err);
-  insights = {}; // ensure fallback triggers
-}
+  let insights = {};
+  try {
+    insights = JSON.parse(cleanedText);
+  } catch (err) {
+    console.log("JSON ERROR:", err);
+    insights = {}; // ensure fallback triggers
+  }
 
-// ✅ FORCE FALLBACK DATA
-if (!insights.salaryRanges) {
-  insights.salaryRanges = [
-    { role: "Software Engineer", min: 80000, median: 120000, max: 160000, location: "Remote" },
-    { role: "Data Scientist", min: 90000, median: 135000, max: 180000, location: "Remote" }
-  ];
-}
+  const safeInsights = {
+    salaryRanges:
+      insights.salaryRanges?.length > 0
+        ? insights.salaryRanges
+        : [
+            { role: "Software Engineer", min: 80000, median: 120000, max: 160000, location: "Remote" },
+            { role: "Data Scientist", min: 90000, median: 135000, max: 180000, location: "Remote" },
+          ],
 
- const safeInsights = {
-  salaryRanges:
-    insights.salaryRanges?.length > 0
-      ? insights.salaryRanges
-      : [
-          { role: "Software Engineer", min: 80000, median: 120000, max: 160000, location: "Remote" },
-          { role: "Data Scientist", min: 90000, median: 135000, max: 180000, location: "Remote" },
-        ],
+    growthRate: Number(insights.growthRate) || 8,
 
-  growthRate: Number(insights.growthRate) || 8,
+    // ✅ always mapped to a valid Prisma enum value now, never passed through raw
+    demandLevel: normalizeDemandLevel(insights.demandLevel),
+    marketOutlook: normalizeMarketOutlook(insights.marketOutlook),
 
-  demandLevel: insights.demandLevel || "HIGH",
+    topSkills:
+      insights.topSkills?.length > 0
+        ? insights.topSkills
+        : ["JavaScript", "React", "Node.js", "SQL"],
 
-  // ✅ ADD THIS (IMPORTANT FIX)
-  marketOutlook: insights.marketOutlook || "POSITIVE",
+    keyTrends:
+      insights.keyTrends?.length > 0
+        ? insights.keyTrends
+        : ["AI adoption", "Remote work", "Cloud computing"],
 
-  topSkills:
-    insights.topSkills?.length > 0
-      ? insights.topSkills
-      : ["JavaScript", "React", "Node.js", "SQL"],
-
-  keyTrends:
-    insights.keyTrends?.length > 0
-      ? insights.keyTrends
-      : ["AI adoption", "Remote work", "Cloud computing"],
-
-  recommendedSkills:
-    insights.recommendedSkills?.length > 0
-      ? insights.recommendedSkills
-      : ["System Design", "DSA", "DevOps"],
-};
+    recommendedSkills:
+      insights.recommendedSkills?.length > 0
+        ? insights.recommendedSkills
+        : ["System Design", "DSA", "DevOps"],
+  };
 
   return safeInsights;
 };
@@ -108,30 +125,29 @@ export async function getIndustryInsights() {
   if (!user) throw new Error("User not found");
 
   // Generate if missing
- if (
-  !user.industryInsight ||
-  user.industryInsight.salaryRanges?.length === 0 ||
-  user.industryInsight.topSkills?.length === 0 ||
-  user.industryInsight.keyTrends?.length === 0 ||
-  user.industryInsight.recommendedSkills?.length === 0
-) {
+  if (
+    !user.industryInsight ||
+    user.industryInsight.salaryRanges?.length === 0 ||
+    user.industryInsight.topSkills?.length === 0 ||
+    user.industryInsight.keyTrends?.length === 0 ||
+    user.industryInsight.recommendedSkills?.length === 0
+  ) {
     const insights = await generateAIInsights(user.industry);
-  
 
-   const industryInsight = await db.industryInsight.upsert({
-  where: {
-    industry: user.industry,
-  },
-  update: {
-    ...insights,
-    nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-  },
-  create: {
-    industry: user.industry,
-    ...insights,
-    nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-  },
-});
+    const industryInsight = await db.industryInsight.upsert({
+      where: {
+        industry: user.industry,
+      },
+      update: {
+        ...insights,
+        nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+      create: {
+        industry: user.industry,
+        ...insights,
+        nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
 
     return industryInsight;
   }
