@@ -153,7 +153,7 @@ const DashboardView = ({ insights }) => {
                 No salary data available
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={300}>
                 <BarChart data={salaryData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
