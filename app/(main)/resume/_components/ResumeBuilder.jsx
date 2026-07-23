@@ -197,7 +197,7 @@ if (!element) {
     setIsGenerating(false);
   }
 };
-  const onSubmit = async (data) => {
+ const onSubmit = async (data) => {
     try {
       const formattedContent = previewContent
         .replace(/\n/g, "\n") // Normalize newlines
@@ -205,7 +205,7 @@ if (!element) {
         .trim();
 
       console.log(previewContent, formattedContent);
-      await saveResumeFn(previewContent);
+      await saveResumeFn(previewContent);   // ← uses previewContent, not formattedContent
     } catch (error) {
       console.error("Save error:", error);
     }
