@@ -260,15 +260,16 @@ export function EntryForm({ type, entries, onChange }) {
       )}
 
       {!isAdding && (
-        <Button
-          className="w-full"
-          variant="outline"
-          onClick={() => setIsAdding(true)}
-        >
-          <PlusCircle className="h-4 w-4 mr-2" />
-          Add {type}
-        </Button>
-      )}
+  <Button
+    type="button"
+    className="w-full"
+    variant="outline"
+    onClick={() => setIsAdding(true)}
+  >
+    <PlusCircle className="h-4 w-4 mr-2" />
+    Add {type}
+  </Button>
+)}
     </div>
   );
 }
