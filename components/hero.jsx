@@ -51,12 +51,6 @@ const HeroSection = () => {
               Get Started
             </Button>
           </Link>
-
-          <Link href="https://www.youtube.com/roadsdiecoder">
-            <Button size="lg" variant="outline" className="px-8">
-              Watch Demo
-            </Button>
-          </Link>
         </div>
 
         {/* Banner Image */}
