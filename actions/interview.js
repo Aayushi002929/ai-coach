@@ -20,7 +20,7 @@ export async function generateQuiz() {
         
 
         const prompt = `
-        Generate 1- technical interview questions for a ${
+        Generate 10 technical interview questions for a ${
             user.industry
         } professional${
             user.skills?.length ? ` with expertise in ${user.skills.join(", ")}` : ""
@@ -108,7 +108,7 @@ export async function saveQuizResult(questions, answers, score) {
 
             try {
             const res = await fetch(
-    "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=" + process.env.GEMINI_API_KEY,
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + process.env.GEMINI_API_KEY,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -119,8 +119,8 @@ export async function saveQuizResult(questions, answers, score) {
   );
 
   const data = await res.json();
-
-  improvementTip = (data.candidates?.[0]?.content?.parts?.[0]?.text).trim() || "{}";
+const rawTip = data.candidates?.[0]?.content?.parts?.[0]?.text;
+improvementTip = rawTip ? rawTip.trim() : null;
 
             } 
              catch (error){
