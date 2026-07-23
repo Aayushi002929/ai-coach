@@ -32,7 +32,7 @@ export async function saveResume(content) {
        revalidatePath("/resume");
        return resume;
       } catch (error) {
-        console.erroe("Error saving resume:", error.message);
+        console.error("Error saving resume:", error.message);
         throw new Error("Failed to save resume");
       }
 }
